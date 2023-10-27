@@ -1,7 +1,7 @@
 #include <Robot_L298P.h>
 
 float Kp = 0.41, Kd = 0.97, Ki = -0.02;
-int BASIC_SPEED = 60;
+int BASIC_SPEED = 30;
 int E_old = 0;
 long int I = 0;
 
@@ -30,11 +30,7 @@ void pid(){
 }
 
 bool f_wall(){
-  if(analogRead(A1) < 500){
-    return true;
-  } else {
-    return false;
-  }
+  return digitalRead(A1);
 }
 bool l_wall(){
   if(analogRead(A2) < 800){
@@ -49,9 +45,12 @@ void rot_l(){
     Robot.enc_A = -130;
     Robot.enc_B = 130;
     flag = 1;
+    Robot.motors(-30, -30);
+    delay(60);
   }
-  Robot.motors(Robot.enc_A * K_l, Robot.enc_B * K_l);
-  Serial.println(Robot.enc_A);
+  while(Robot.enc_A != 0 && Robot.enc_B != 0){
+    Robot.motors(Robot.enc_A * K_l, Robot.enc_B * K_l);
+  }
 }
 
 void rot_r(){
@@ -59,23 +58,24 @@ void rot_r(){
     Robot.enc_A = 130;
     Robot.enc_B = -130;
     flag = 1;
+    Robot.motors(-30, -30);
+    delay(60);
   }
-  Robot.motors(Robot.enc_A * K_l, Robot.enc_B * K_l);
-  Serial.println(Robot.enc_A);
+  while(Robot.enc_A != 0 && Robot.enc_B != 0){
+    Robot.motors(Robot.enc_A * K_l, Robot.enc_B * K_l);
+  }
 }
 
 void loop() {
-  BASIC_SPEED = map(analogRead(A1), 0, 980, 0, 50);
-  Serial.println(analogRead(A1));
-  if(!f_wall()){
+  if(f_wall()){
     pid();
   } else {
     if(!l_wall()){
       flag = 0;
-      rot_r();
+      rot_l();
     } else {
       flag = 0;
-      rot_l();
+      rot_r();
     }
   }
 }
